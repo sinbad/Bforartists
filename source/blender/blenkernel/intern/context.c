@@ -693,6 +693,16 @@ struct SpaceText *CTX_wm_space_text(const bContext *C)
 	return NULL;
 }
 
+// bfa - our new tutorial editor
+struct SpaceTutorial *CTX_wm_space_tutorial(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype == SPACE_TUTORIAL)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+
 struct SpaceConsole *CTX_wm_space_console(const bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);

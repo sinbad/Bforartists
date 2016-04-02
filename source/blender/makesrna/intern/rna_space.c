@@ -85,8 +85,10 @@ EnumPropertyItem space_type_items[] = {
 	{0, "", ICON_NONE, NULL, NULL},
 	{SPACE_CONSOLE, "CONSOLE", ICON_CONSOLE, "Python Console", "Interactive programmatic console for advanced editing and script development"},
 	{ 0, "", ICON_NONE, NULL, NULL },
+	{ SPACE_TUTORIAL, "TUTORIAL_EDITOR", ICON_SEQUENCE, "Tutorial Editor", "Tooltip" },
+	{ 0, NULL, 0, NULL, NULL },
 	{SPACE_SEQ, "SEQUENCE_EDITOR", ICON_SEQUENCE, "DEPRECATED - VSE", "Video editing tools. DEPRECATED. USE AT OWN RISK."}, // Deprecated video sequence editor
-	{ 0, NULL, 0, NULL, NULL }
+	{ 0, NULL, 0, NULL, NULL },
 };
 
 #define V3D_S3D_CAMERA_LEFT        {STEREO_LEFT_ID, "LEFT", ICON_RESTRICT_RENDER_OFF, "Left", ""},
@@ -297,6 +299,8 @@ static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
 			return &RNA_SpaceSequenceEditor;
 		case SPACE_TEXT:
 			return &RNA_SpaceTextEditor;
+		case SPACE_TUTORIAL: // bfa - the new tutorial editor
+			return &RNA_SpaceTutorialEditor;
 		case SPACE_ACTION:
 			return &RNA_SpaceDopeSheetEditor;
 		case SPACE_NLA:
@@ -3334,6 +3338,19 @@ static void rna_def_space_text(BlenderRNA *brna)
 	RNA_api_space_text(srna);
 }
 
+// bfa - our new tutorial editor
+static void rna_def_space_tutorial(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	//PropertyRNA *prop;
+	
+	srna = RNA_def_struct(brna, "SpaceTutorialEditor", "Space");
+	RNA_def_struct_sdna(srna, "SpaceTutorial");
+	RNA_def_struct_ui_text(srna, "Space Tutorial Editor", "Tutorial editor space data");
+	
+}
+
+
 static void rna_def_space_dopesheet(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -4737,6 +4754,7 @@ void RNA_def_space(BlenderRNA *brna)
 	rna_def_space_node(brna);
 	rna_def_space_logic(brna);
 	rna_def_space_clip(brna);
+	rna_def_space_tutorial(brna); // bfa - our new tutorial editor
 }
 
 #endif
