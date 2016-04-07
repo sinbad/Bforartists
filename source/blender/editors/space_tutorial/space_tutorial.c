@@ -28,6 +28,8 @@
 *  \ingroup sptutorial
 */
 
+// BFA - barebone
+
 #include <string.h>
 
 #include "DNA_text_types.h"

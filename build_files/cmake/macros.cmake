@@ -512,11 +512,11 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_editor_space_script
 		bf_editor_space_sequencer
 		bf_editor_space_text
-		bf_editor_space_tutorial
 		bf_editor_space_time
 		bf_editor_space_userpref
 		bf_editor_space_view3d
 		bf_editor_space_clip
+		bf_editor_space_tutorial
 
 		bf_editor_transform
 		bf_editor_util
