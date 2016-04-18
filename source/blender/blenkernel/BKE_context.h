@@ -147,7 +147,6 @@ struct ReportList *CTX_wm_reports(const bContext *C);
 struct View3D *CTX_wm_view3d(const bContext *C);
 struct RegionView3D *CTX_wm_region_view3d(const bContext *C);
 struct SpaceText *CTX_wm_space_text(const bContext *C);
-struct SpaceTutorial *CTX_wm_space_tutorial(const bContext *C); // bfa - our new tutorial editor
 struct SpaceImage *CTX_wm_space_image(const bContext *C);
 struct SpaceConsole *CTX_wm_space_console(const bContext *C);
 struct SpaceButs *CTX_wm_space_buts(const bContext *C);
@@ -163,6 +162,7 @@ struct SpaceAction *CTX_wm_space_action(const bContext *C);
 struct SpaceInfo *CTX_wm_space_info(const bContext *C);
 struct SpaceUserPref *CTX_wm_space_userpref(const bContext *C);
 struct SpaceClip *CTX_wm_space_clip(const bContext *C);
+struct SpaceTutorial *CTX_wm_space_tutorial(const bContext *C); // bfa - our new tutorial editor
 
 void CTX_wm_manager_set(bContext *C, struct wmWindowManager *wm);
 void CTX_wm_window_set(bContext *C, struct wmWindow *win);

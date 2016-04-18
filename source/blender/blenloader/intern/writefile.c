@@ -2867,6 +2867,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				else if (sl->spacetype == SPACE_INFO) {
 					writestruct(wd, DATA, "SpaceInfo", 1, sl);
 				}
+				else if (sl->spacetype == SPACE_TUTORIAL) {
+					writestruct(wd, DATA, "SpaceTutorial", 1, sl); /*bfa - second part tutorial editor*/
+				}
 
 				sl= sl->next;
 			}
