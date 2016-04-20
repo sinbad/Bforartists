@@ -96,7 +96,8 @@ void ED_spacetypes_init(void)
 	ED_spacetype_console();
 	ED_spacetype_userpref();
 	ED_spacetype_clip();
-	ED_spacetype_tutorial(); // bfa - our tutorial editor
+	ED_spacetype_tutorial(); // bfa - our new tutorial editor
+	ED_spacetype_inspector(); // bfa - our new inspector editor
 //	...
 	
 	/* register operator types for screen and all spaces */

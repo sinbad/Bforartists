@@ -702,6 +702,15 @@ struct SpaceTutorial *CTX_wm_space_tutorial(const bContext *C)
 	return NULL;
 }
 
+// bfa - our new Inspector editor
+struct SpaceInspector *CTX_wm_space_inspector(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype == SPACE_INSPECTOR)
+		return sa->spacedata.first;
+	return NULL;
+}
+
 
 struct SpaceConsole *CTX_wm_space_console(const bContext *C)
 {

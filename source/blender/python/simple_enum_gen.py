@@ -37,6 +37,7 @@ defs = """
     SPACE_TIME,
     SPACE_NODE,
     SPACE_TUTORIAL # bfa - second part tutorial editor
+    SPACE_INSPECTOR # bfa - second part inspector editor
     SPACEICONMAX
 """
 

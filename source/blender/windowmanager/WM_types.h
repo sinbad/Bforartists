@@ -363,6 +363,7 @@ typedef struct wmNotifier {
 #define ND_SPACE_CLIP			(19<<16)
 #define ND_SPACE_FILE_PREVIEW   (20<<16)
 #define ND_SPACE_TUTORIAL		(21<<16) // bfa - the new tutorial editor
+#define ND_SPACE_INSPECTOR		(22<<16) // bfa - the new inspector editor
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE		0x0000FF00

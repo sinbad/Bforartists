@@ -163,6 +163,7 @@ struct SpaceInfo *CTX_wm_space_info(const bContext *C);
 struct SpaceUserPref *CTX_wm_space_userpref(const bContext *C);
 struct SpaceClip *CTX_wm_space_clip(const bContext *C);
 struct SpaceTutorial *CTX_wm_space_tutorial(const bContext *C); // bfa - our new tutorial editor
+struct SpaceInspector *CTX_wm_space_inspector(const bContext *C); // bfa - our new Inspector editor
 
 void CTX_wm_manager_set(bContext *C, struct wmWindowManager *wm);
 void CTX_wm_window_set(bContext *C, struct wmWindow *win);

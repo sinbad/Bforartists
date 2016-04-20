@@ -1333,6 +1333,14 @@ typedef struct SpaceTutorial {
 	char pad[4];
 } SpaceTutorial;
 
+/* Inspector Editor */  // bfa - the space link for our new Inspector editor
+typedef struct SpaceInspector {
+	SpaceLink *next, *prev;
+	ListBase regionbase;
+	int spacetype;
+	char pad[4];
+} SpaceInspector;
+
 /* **************** SPACE DEFINES ********************* */
 
 /* space types, moved from DNA_screen_types.h */
@@ -1363,8 +1371,9 @@ typedef enum eSpace_Type {
 	SPACE_USERPREF = 19,
 	SPACE_CLIP     = 20,
 	SPACE_TUTORIAL = 21, // bfa our tutorial space type
+	SPACE_INSPECTOR = 22, // bfa our new Inspector space type
 	
-	SPACEICONMAX = SPACE_TUTORIAL // bfa - space clip repaced by space tutorial
+	SPACEICONMAX = SPACE_INSPECTOR // bfa - space clip repaced by space tutorial
 	//SPACEICONMAX
 } eSpace_Type;
 

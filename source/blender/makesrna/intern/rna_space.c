@@ -85,8 +85,10 @@ EnumPropertyItem space_type_items[] = {
 	{0, "", ICON_NONE, NULL, NULL},
 	{SPACE_CONSOLE, "CONSOLE", ICON_CONSOLE, "Python Console", "Interactive programmatic console for advanced editing and script development"},
 	{ 0, "", ICON_NONE, NULL, NULL },
-	{ SPACE_SEQ, "SEQUENCE_EDITOR", ICON_SEQUENCE, "DEPRECATED - VSE", "Video editing tools. DEPRECATED. USE AT OWN RISK." }, // Deprecated video sequence editor
 	{ SPACE_TUTORIAL, "TUTORIAL_EDITOR", ICON_SEQUENCE, "Tutorial Editor", "Tooltip" },
+	{ SPACE_INSPECTOR, "INSPECTOR_EDITOR", ICON_SEQUENCE, "Inspector Editor", "Tooltip" },
+	{ 0, "", ICON_NONE, NULL, NULL },
+	{ SPACE_SEQ, "SEQUENCE_EDITOR", ICON_SEQUENCE, "DEPRECATED - VSE", "Video editing tools. DEPRECATED. USE AT OWN RISK." }, // Deprecated video sequence editor
 	{ 0, NULL, 0, NULL, NULL },
 	{ 0, NULL, 0, NULL, NULL },
 };
@@ -299,8 +301,6 @@ static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
 			return &RNA_SpaceSequenceEditor;
 		case SPACE_TEXT:
 			return &RNA_SpaceTextEditor;
-		case SPACE_TUTORIAL: // bfa - the new tutorial editor
-			return &RNA_SpaceTutorialEditor;
 		case SPACE_ACTION:
 			return &RNA_SpaceDopeSheetEditor;
 		case SPACE_NLA:
@@ -317,6 +317,10 @@ static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
 			return &RNA_SpaceUserPreferences;
 		case SPACE_CLIP:
 			return &RNA_SpaceClipEditor;
+		case SPACE_TUTORIAL: // bfa - the new tutorial editor
+			return &RNA_SpaceTutorialEditor;
+		case SPACE_INSPECTOR: // bfa - the new inspector editor
+			return &RNA_SpaceInspectorEditor;
 		default:
 			return &RNA_Space;
 	}
@@ -3350,6 +3354,18 @@ static void rna_def_space_tutorial(BlenderRNA *brna)
 	
 }
 
+// bfa - our new inspector editor
+static void rna_def_space_inspector(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	//PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "SpaceInspectorEditor", "Space");
+	RNA_def_struct_sdna(srna, "SpaceInspector");
+	RNA_def_struct_ui_text(srna, "Space Inspector Editor", "Inspector editor space data");
+
+}
+
 
 static void rna_def_space_dopesheet(BlenderRNA *brna)
 {
@@ -4755,6 +4771,7 @@ void RNA_def_space(BlenderRNA *brna)
 	rna_def_space_logic(brna);
 	rna_def_space_clip(brna);
 	rna_def_space_tutorial(brna); // bfa - our new tutorial editor
+	rna_def_space_inspector(brna); // bfa - our new inspector editor
 }
 
 #endif

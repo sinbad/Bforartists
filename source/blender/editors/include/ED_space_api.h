@@ -58,7 +58,8 @@ void ED_spacetype_logic(void);
 void ED_spacetype_console(void);
 void ED_spacetype_userpref(void);
 void ED_spacetype_clip(void);
-void ED_spacetype_tutorial(void);  // bfa - /* Our new space/editor */
+void ED_spacetype_tutorial(void);  // bfa - /* Our new tutorial editor */
+void ED_spacetype_inspector(void);  // bfa - /* Our new inspector editor */
 
 /* calls for instancing and freeing spacetype static data 
  * called in WM_init_exit */

@@ -577,6 +577,7 @@ extern StructRNA RNA_SpaceUserPreferences;
 extern StructRNA RNA_SpaceView3D;
 extern StructRNA RNA_SpaceClipEditor;
 extern StructRNA RNA_SpaceTutorialEditor; /*bfa - second part tutorial editor*/
+extern StructRNA RNA_SpaceInspectorEditor; /*bfa - second part inspector editor*/
 extern StructRNA RNA_Speaker;
 extern StructRNA RNA_SpeedControlSequence;
 extern StructRNA RNA_Spline;
