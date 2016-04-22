@@ -3033,6 +3033,8 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 		{16, "FILE_BROWSER", ICON_FILESEL, "File Browser", ""},
 		{17, "CONSOLE", ICON_CONSOLE, "Python Console", ""},
 		{20, "CLIP_EDITOR", ICON_CLIP, "Movie Clip Editor", ""},
+		{21, "TUTORIAL_EDITOR", ICON_CLIP, "Tutorial Editor", "" }, // bfa - our new tutorial editor
+		{22, "INSPECTOR_EDITOR", ICON_CLIP, "Inspector Editor", "" }, // bfa - our new inspector editor
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -3166,6 +3168,20 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "tclip");
 	RNA_def_property_struct_type(prop, "ThemeClipEditor");
 	RNA_def_property_ui_text(prop, "Clip Editor", "");
+
+	// doesn't work yet. VS throws odd errors about a missing semicolons before the term "tutorial_editor" when compiling. 
+
+	//prop = RNA_def_property(srna, "tutorial_editor", PROP_POINTER, PROP_NONE);
+	//RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	//RNA_def_property_pointer_sdna(prop, NULL, "ttutorial");
+	//RNA_def_property_struct_type(prop, "ThemeTutorialEditor");
+	//RNA_def_property_ui_text(prop, "Tutorial Editor", "");
+
+	//prop = RNA_def_property(srna, "inspector_editor", PROP_POINTER, PROP_NONE);
+	//RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	//RNA_def_property_pointer_sdna(prop, NULL, "tinspector");
+	//RNA_def_property_struct_type(prop, "ThemeInspectorEditor");
+	//RNA_def_property_ui_text(prop, "Inspector Editor", "");
 }
 
 static void rna_def_userdef_addon(BlenderRNA *brna)

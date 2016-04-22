@@ -165,6 +165,12 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case SPACE_CLIP:
 					ts = &btheme->tclip;
 					break;
+				case SPACE_TUTORIAL: // bfa - our new tutorial editor
+					ts = &btheme->ttutorial;
+					break;
+				case SPACE_INSPECTOR: // bfa -our new inspector editor 
+					ts = &btheme->tinspector;
+					break;
 				default:
 					ts = &btheme->tv3d;
 					break;
