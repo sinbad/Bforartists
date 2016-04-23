@@ -3033,8 +3033,8 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 		{16, "FILE_BROWSER", ICON_FILESEL, "File Browser", ""},
 		{17, "CONSOLE", ICON_CONSOLE, "Python Console", ""},
 		{20, "CLIP_EDITOR", ICON_CLIP, "Movie Clip Editor", ""},
-		{21, "TUTORIAL_EDITOR", ICON_CLIP, "Tutorial Editor", "" }, // bfa - our new tutorial editor
-		{22, "INSPECTOR_EDITOR", ICON_CLIP, "Inspector Editor", "" }, // bfa - our new inspector editor
+		{ 21, "TUTORIAL_EDITOR", ICON_OBJECTINFO, "Tutorial Editor", "" }, // bfa - our new tutorial editor
+		{ 22, "INSPECTOR_EDITOR", ICON_INSPECTOR, "Inspector Editor", "" }, // bfa - our new inspector editor
 		{0, NULL, 0, NULL, NULL}
 	};
 
