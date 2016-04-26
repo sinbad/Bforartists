@@ -26,6 +26,7 @@ if "bpy" in locals():
         reload(val)
     del reload
 _modules = [
+    "objectpanel_object",
     "properties_animviz",
     "properties_constraint",
     "properties_data_armature",

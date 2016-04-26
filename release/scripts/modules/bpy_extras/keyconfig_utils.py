@@ -1,4 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
+﻿# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -132,6 +132,8 @@ KM_HIERARCHY = [
 
     ('Standard Modal Map', 'EMPTY', 'WINDOW', []),
     ('Transform Modal Map', 'EMPTY', 'WINDOW', []),
+    ('Tutorial', 'TUTORIAL_EDITOR', 'WINDOW', []), # bfa -tutorial editor 
+    ('Inspector', 'INSPECTOR_EDITOR', 'WINDOW', []),# bfa -inspector editor 
     ]
 
 

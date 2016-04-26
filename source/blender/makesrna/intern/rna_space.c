@@ -85,8 +85,8 @@ EnumPropertyItem space_type_items[] = {
 	{0, "", ICON_NONE, NULL, NULL},
 	{SPACE_CONSOLE, "CONSOLE", ICON_CONSOLE, "Python Console", "Interactive programmatic console for advanced editing and script development"},
 	{ 0, "", ICON_NONE, NULL, NULL },
-	{ SPACE_TUTORIAL, "TUTORIAL_EDITOR", ICON_OBJECTINFO, "Tutorial Editor", "Tooltip" },
-	{ SPACE_INSPECTOR, "INSPECTOR_EDITOR", ICON_INSPECTOR, "Inspector Editor", "Tooltip" },
+	{ SPACE_TUTORIAL, "TUTORIAL_EDITOR", ICON_OBJECTINFO, "Tutorial Editor", "Tooltip for Tutorialeditor" },
+	{ SPACE_INSPECTOR, "INSPECTOR_EDITOR", ICON_INSPECTOR, "Inspector Editor", "Tooltip for Inspector" },
 	{ 0, "", ICON_NONE, NULL, NULL },
 	{ SPACE_SEQ, "SEQUENCE_EDITOR", ICON_SEQUENCE, "DEPRECATED - VSE", "Video editing tools. DEPRECATED. USE AT OWN RISK." }, // Deprecated video sequence editor
 	{ 0, NULL, 0, NULL, NULL },
@@ -983,6 +983,254 @@ static void rna_SpaceTextEditor_updateEdited(Main *UNUSED(bmain), Scene *UNUSED(
 	if (st->text)
 		WM_main_add_notifier(NC_TEXT | NA_EDITED, st->text);
 }
+
+/*------------------------------------------------------------------------------------------------------------*/
+
+/* bfa  - Space tutorial */
+
+static void rna_SpaceTutorial_align_set(PointerRNA *ptr, int value)
+{
+	SpaceTutorial *stutorial = (SpaceTutorial *)(ptr->data);
+
+	stutorial->align = value;
+	stutorial->re_align = 1;
+}
+
+/* note: this function exists only to avoid id refcounting */
+static void rna_SpaceTutorial_pin_id_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceTutorial *stutorial = (SpaceTutorial *)(ptr->data);
+	stutorial->pinid = value.data;
+}
+
+static StructRNA *rna_SpaceTutorial_pin_id_typef(PointerRNA *ptr)
+{
+	SpaceTutorial *stutorial = (SpaceTutorial *)(ptr->data);
+
+	if (stutorial->pinid)
+		return ID_code_to_RNA_type(GS(stutorial->pinid->name));
+
+	return &RNA_ID;
+}
+
+static void rna_SpaceTutorial_pin_id_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	SpaceTutorial *stutorial = (SpaceTutorial *)(ptr->data);
+	ID *id = stutorial->pinid;
+
+	if (id == NULL) {
+		stutorial->flag &= ~TUTORIAL_PIN_CONTEXT;
+		return;
+	}
+
+	switch (GS(id->name)) {
+	case ID_MA:
+		WM_main_add_notifier(NC_MATERIAL | ND_SHADING, NULL);
+		break;
+	case ID_TE:
+		WM_main_add_notifier(NC_TEXTURE, NULL);
+		break;
+	case ID_WO:
+		WM_main_add_notifier(NC_WORLD, NULL);
+		break;
+	case ID_LA:
+		WM_main_add_notifier(NC_LAMP, NULL);
+		break;
+	}
+}
+
+
+static void rna_SpaceTutorial_context_set(PointerRNA *ptr, int value)
+{
+	SpaceTutorial *stutorial = (SpaceTutorial *)(ptr->data);
+
+	stutorial->mainb = value;
+	stutorial->mainbuser = value;
+}
+
+static EnumPropertyItem *rna_SpaceTutorial_context_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+	PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	SpaceTutorial *stutorial = (SpaceTutorial *)(ptr->data);
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+	/*bfa - later step*/
+	//stutorial->pathflag & (1 << OBJCONTEXT_TUTORIAL);
+	//RNA_enum_items_add_value(&item, &totitem, Obuttons_context_items, OBJCONTEXT_TUTORIAL);
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
+
+static EnumPropertyItem *rna_SpaceTutorial_texture_context_itemf(bContext *C, PointerRNA *UNUSED(ptr),
+	PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+
+	if (ED_texture_context_check_world(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_WORLD);
+	}
+
+	if (ED_texture_context_check_lamp(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_LAMP);
+	}
+	else if (ED_texture_context_check_material(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_MATERIAL);
+	}
+
+	if (ED_texture_context_check_particles(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_PARTICLES);
+	}
+
+	if (ED_texture_context_check_linestyle(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_LINESTYLE);
+	}
+
+	if (ED_texture_context_check_others(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_OTHER);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
+
+static void rna_SpaceTutorial_texture_context_set(PointerRNA *ptr, int value)
+{
+	SpaceTutorial *stutorial = (SpaceTutorial *)(ptr->data);
+
+	/* User action, no need to keep "better" value in prev here! */
+	stutorial->texture_context = stutorial->texture_context_prev = value;
+}
+
+/*------------------------------------------------------------------------------------------------------------*/
+
+/* bfa - Space inspector */
+
+static void rna_SpaceInspector_align_set(PointerRNA *ptr, int value)
+{
+	SpaceInspector *sinspector = (SpaceInspector *)(ptr->data);
+
+	sinspector->align = value;
+	sinspector->re_align = 1;
+}
+
+/* note: this function exists only to avoid id refcounting */
+static void rna_SpaceInspector_pin_id_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceInspector *sinspector = (SpaceInspector *)(ptr->data);
+	sinspector->pinid = value.data;
+}
+
+static StructRNA *rna_SpaceInspector_pin_id_typef(PointerRNA *ptr)
+{
+	SpaceInspector *sinspector = (SpaceInspector *)(ptr->data);
+
+	if (sinspector->pinid)
+		return ID_code_to_RNA_type(GS(sinspector->pinid->name));
+
+	return &RNA_ID;
+}
+
+static void rna_SpaceInspector_pin_id_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	SpaceInspector *sinspector = (SpaceInspector *)(ptr->data);
+	ID *id = sinspector->pinid;
+
+	if (id == NULL) {
+		sinspector->flag &= ~INSPECTOR_PIN_CONTEXT;
+		return;
+	}
+
+	switch (GS(id->name)) {
+	case ID_MA:
+		WM_main_add_notifier(NC_MATERIAL | ND_SHADING, NULL);
+		break;
+	case ID_TE:
+		WM_main_add_notifier(NC_TEXTURE, NULL);
+		break;
+	case ID_WO:
+		WM_main_add_notifier(NC_WORLD, NULL);
+		break;
+	case ID_LA:
+		WM_main_add_notifier(NC_LAMP, NULL);
+		break;
+	}
+}
+
+
+static void rna_SpaceInspector_context_set(PointerRNA *ptr, int value)
+{
+	SpaceInspector *sinspector = (SpaceInspector *)(ptr->data);
+
+	sinspector->mainb = value;
+	sinspector->mainbuser = value;
+}
+
+static EnumPropertyItem *rna_SpaceInspector_context_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+	PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	SpaceInspector *sinspector = (SpaceInspector *)(ptr->data);
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+	/* bfa - later step */
+	//sinspector->pathflag & (1 << OBJCONTEXT_INSPECTOR);
+	//RNA_enum_items_add_value(&item, &totitem, Obuttons_context_items, OBJCONTEXT_INSPECTOR);
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
+
+static EnumPropertyItem *rna_SpaceInspector_texture_context_itemf(bContext *C, PointerRNA *UNUSED(ptr),
+	PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+
+	if (ED_texture_context_check_world(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_WORLD);
+	}
+
+	if (ED_texture_context_check_lamp(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_LAMP);
+	}
+	else if (ED_texture_context_check_material(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_MATERIAL);
+	}
+
+	if (ED_texture_context_check_particles(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_PARTICLES);
+	}
+
+	if (ED_texture_context_check_linestyle(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_LINESTYLE);
+	}
+
+	if (ED_texture_context_check_others(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_OTHER);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
+
+static void rna_SpaceInspector_texture_context_set(PointerRNA *ptr, int value)
+{
+	SpaceInspector *sinspector = (SpaceInspector *)(ptr->data);
+
+	/* User action, no need to keep "better" value in prev here! */
+	sinspector->texture_context = sinspector->texture_context_prev = value;
+}
+
+/*------------------------------------------------------------------------------------------------------------*/
 
 /* Space Properties */
 
@@ -3342,30 +3590,129 @@ static void rna_def_space_text(BlenderRNA *brna)
 	RNA_api_space_text(srna);
 }
 
-// bfa - our new tutorial editor
+//// bfa - our new tutorial editor
+//static void rna_def_space_tutorial(BlenderRNA *brna)
+//{
+//	StructRNA *srna;
+//	//PropertyRNA *prop;
+//	
+//	srna = RNA_def_struct(brna, "SpaceTutorialEditor", "Space");
+//	RNA_def_struct_sdna(srna, "SpaceTutorial");
+//	RNA_def_struct_ui_text(srna, "Space Tutorial Editor", "Tutorial editor space data");
+//	
+//}
+//
+//// bfa - our new inspector editor
+//static void rna_def_space_inspector(BlenderRNA *brna)
+//{
+//	StructRNA *srna;
+//	//PropertyRNA *prop;
+//
+//	srna = RNA_def_struct(brna, "SpaceInspectorEditor", "Space");
+//	RNA_def_struct_sdna(srna, "SpaceInspector");
+//	RNA_def_struct_ui_text(srna, "Space Inspector Editor", "Inspector editor space data");
+//
+//}
+
+/*--------------------------------------------------------------------------------------------------------*/
+
+//bfa - our new tutorial editor
+
 static void rna_def_space_tutorial(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	//PropertyRNA *prop;
-	
-	srna = RNA_def_struct(brna, "SpaceTutorialEditor", "Space");
+	PropertyRNA *prop;
+
+	static EnumPropertyItem align_items[] = {
+		{ TUTORIAL_HORIZONTAL, "HORIZONTAL", 0, "Horizontal", "" },
+		{ TUTORIAL_VERTICAL, "VERTICAL", 0, "Vertical", "" },
+		{ 0, NULL, 0, NULL, NULL }
+	};
+
+	srna = RNA_def_struct(brna, "SpaceTutorial", "Space");
 	RNA_def_struct_sdna(srna, "SpaceTutorial");
-	RNA_def_struct_ui_text(srna, "Space Tutorial Editor", "Tutorial editor space data");
-	
+	RNA_def_struct_ui_text(srna, "Space Tutorial", "tutorial space data");
+
+	prop = RNA_def_property(srna, "context", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mainb");
+	RNA_def_property_enum_items(prop, buttons_context_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceTutorial_context_set", "rna_SpaceTutorial_context_itemf");
+	RNA_def_property_ui_text(prop, "Context", "Type of active data to display and edit");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TUTORIAL, NULL);
+
+	prop = RNA_def_property(srna, "align", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "align");
+	RNA_def_property_enum_items(prop, align_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceTutorial_align_set", NULL);
+	RNA_def_property_ui_text(prop, "Align", "Arrangement of the panels");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TUTORIAL, NULL);
+
+	/* pinned data */
+	prop = RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "pinid");
+	RNA_def_property_struct_type(prop, "ID");
+	/* note: custom set function is ONLY to avoid rna setting a user for this. */
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceTutorial_pin_id_set",
+		"rna_SpaceTutorial_pin_id_typef", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TUTORIAL, "rna_SpaceTutorial_pin_id_update");
+
+	prop = RNA_def_property(srna, "use_pin_id", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TUTORIAL_PIN_CONTEXT);
+	RNA_def_property_ui_text(prop, "Pin ID", "Use the pinned context");
+
 }
 
-// bfa - our new inspector editor
+/*--------------------------------------------------------------------------------------------------------*/
+
+//bfa - our new inspector editor
+
 static void rna_def_space_inspector(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	//PropertyRNA *prop;
+	PropertyRNA *prop;
 
-	srna = RNA_def_struct(brna, "SpaceInspectorEditor", "Space");
+	static EnumPropertyItem align_items[] = {
+		{ INSPECTOR_HORIZONTAL, "HORIZONTAL", 0, "Horizontal", "" },
+		{ INSPECTOR_VERTICAL, "VERTICAL", 0, "Vertical", "" },
+		{ 0, NULL, 0, NULL, NULL }
+	};
+
+	srna = RNA_def_struct(brna, "SpaceInspector", "Space");
 	RNA_def_struct_sdna(srna, "SpaceInspector");
-	RNA_def_struct_ui_text(srna, "Space Inspector Editor", "Inspector editor space data");
+	RNA_def_struct_ui_text(srna, "Space Inspector", "inspector space data");
+
+	prop = RNA_def_property(srna, "context", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mainb");
+	RNA_def_property_enum_items(prop, buttons_context_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceInspector_context_set", "rna_SpaceInspector_context_itemf");
+	RNA_def_property_ui_text(prop, "Context", "Type of active data to display and edit");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_INSPECTOR, NULL);
+
+	prop = RNA_def_property(srna, "align", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "align");
+	RNA_def_property_enum_items(prop, align_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceInspector_align_set", NULL);
+	RNA_def_property_ui_text(prop, "Align", "Arrangement of the panels");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_INSPECTOR, NULL);
+
+	/* pinned data */
+	prop = RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "pinid");
+	RNA_def_property_struct_type(prop, "ID");
+	/* note: custom set function is ONLY to avoid rna setting a user for this. */
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceInspector_pin_id_set",
+		"rna_SpaceInspector_pin_id_typef", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_INSPECTOR, "rna_SpaceInspector_pin_id_update");
+
+	prop = RNA_def_property(srna, "use_pin_id", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", INSPECTOR_PIN_CONTEXT);
+	RNA_def_property_ui_text(prop, "Pin ID", "Use the pinned context");
 
 }
 
+/*--------------------------------------------------------------------------------------------------------*/
 
 static void rna_def_space_dopesheet(BlenderRNA *brna)
 {

@@ -326,6 +326,47 @@ int ED_operator_console_active(bContext *C)
 	return ed_spacetype_test(C, SPACE_CONSOLE);
 }
 
+/*---------------------------------------------------------------------------------------*/
+/*bfa - tutorial editor */
+int ED_operator_tutorial_active(bContext *C) 
+{
+	return ed_spacetype_test(C, SPACE_TUTORIAL);
+}
+
+int ED_operator_tutorial_active_no_editobject(bContext *C)
+{
+	if (ed_spacetype_test(C, SPACE_TUTORIAL)) {
+		Object *ob = ED_object_active_context(C);
+		Object *obedit = CTX_data_edit_object(C);
+		if (ob && ob == obedit)
+			return 0;
+		else
+			return 1;
+	}
+	return 0;
+}
+
+
+/*bfa - inspector editor */
+int ED_operator_inspector_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_INSPECTOR);
+}
+
+int ED_operator_inspector_active_no_editobject(bContext *C)
+{
+	if (ed_spacetype_test(C, SPACE_INSPECTOR)) {
+		Object *ob = ED_object_active_context(C);
+		Object *obedit = CTX_data_edit_object(C);
+		if (ob && ob == obedit)
+			return 0;
+		else
+			return 1;
+	}
+	return 0;
+}
+/*---------------------------------------------------------------------------------------*/
+
 static int ed_object_hidden(Object *ob)
 {
 	/* if hidden but in edit mode, we still display, can happen with animation */

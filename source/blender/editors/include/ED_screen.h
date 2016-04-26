@@ -158,6 +158,10 @@ int     ED_operator_nla_active(struct bContext *C);
 int     ED_operator_logic_active(struct bContext *C);
 int     ED_operator_info_active(struct bContext *C);
 int     ED_operator_console_active(struct bContext *C);
+int     ED_operator_tutorial_active(struct bContext *C); /*bfa - tutorial editor */
+int     ED_operator_tutorial_active_no_editobject(struct bContext *C);/*bfa - tutorial editor */
+int     ED_operator_inspector_active(struct bContext *C);/*bfa - inspector editor */
+int     ED_operator_inspector_active_no_editobject(struct bContext *C);/*bfa - inspector editor */
 
 
 int     ED_operator_object_active(struct bContext *C);

@@ -6245,6 +6245,26 @@ static void lib_link_screen(FileData *fd, Main *main)
 							}
 						}
 					}
+
+					/*bfa - tutorial editor */
+					else if (sl->spacetype == SPACE_TUTORIAL) {
+						SpaceTutorial *stutorial = (SpaceTutorial *)sl;
+						stutorial->pinid = newlibadr(fd, sc->id.lib, stutorial->pinid);
+						if (stutorial->pinid == NULL) {
+							stutorial->flag &= ~TUTORIAL_PIN_CONTEXT;
+						}
+					}
+
+					/*bfa - inspector editor */
+					else if (sl->spacetype == SPACE_INSPECTOR) {
+						SpaceInspector *sinspector = (SpaceInspector *)sl;
+						sinspector->pinid = newlibadr(fd, sc->id.lib, sinspector->pinid);
+						if (sinspector->pinid == NULL) {
+							sinspector->flag &= ~INSPECTOR_PIN_CONTEXT;
+						}
+					}
+
+
 					else if (sl->spacetype == SPACE_OUTLINER) {
 						SpaceOops *so= (SpaceOops *)sl;
 						so->search_tse.id = newlibadr(fd, NULL, so->search_tse.id);
@@ -6599,6 +6619,35 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 						SCRIPT_SET_NULL(scpt->script);
 					}
 				}
+
+				/*bfa - tutorial editor*/
+				else if (sl->spacetype == SPACE_TUTORIAL) {
+					SpaceTutorial *stutorial = (SpaceTutorial *)sl;
+					stutorial->pinid = restore_pointer_by_name(newmain, stutorial->pinid, USER_IGNORE);
+					//sobj->pinid = newlibadr(fd, sc->id.lib, sobj->pinid);
+					if (stutorial->pinid == NULL) {
+						stutorial->flag &= ~TUTORIAL_PIN_CONTEXT;
+					}
+					/* TODO: restore path pointers: T40046
+					* (complicated because this contains data pointers too, not just ID)*/
+					MEM_SAFE_FREE(stutorial->path);
+				}
+				/////////////////
+
+				/*bfa - inspector editor*/
+				else if (sl->spacetype == SPACE_INSPECTOR) {
+					SpaceInspector *sinspector = (SpaceInspector *)sl;
+					sinspector->pinid = restore_pointer_by_name(newmain, sinspector->pinid, USER_IGNORE);
+					//sobj->pinid = newlibadr(fd, sc->id.lib, sobj->pinid);
+					if (sinspector->pinid == NULL) {
+						sinspector->flag &= ~INSPECTOR_PIN_CONTEXT;
+					}
+					/* TODO: restore path pointers: T40046
+					* (complicated because this contains data pointers too, not just ID)*/
+					MEM_SAFE_FREE(sinspector->path);
+				}
+				/////////////////
+
 				else if (sl->spacetype == SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
 					
@@ -6910,6 +6959,29 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 				
 				snla->ads = newdataadr(fd, snla->ads);
 			}
+
+			/*bfa - tutorial editor */
+			else if (sl->spacetype == SPACE_TUTORIAL) {
+				SpaceTutorial *stutorial = (SpaceTutorial *)sl;
+
+				stutorial->path = NULL;
+				//sbuts->texuser = NULL;
+				stutorial->mainbo = stutorial->mainb;
+				stutorial->mainbuser = stutorial->mainb;
+			}
+			///////////////
+
+			/*bfa - inspector editor */
+			else if (sl->spacetype == SPACE_INSPECTOR) {
+				SpaceInspector *sinspector = (SpaceInspector *)sl;
+
+				sinspector->path = NULL;
+				//sbuts->texuser = NULL;
+				sinspector->mainbo = sinspector->mainb;
+				sinspector->mainbuser = sinspector->mainb;
+			}
+			///////////////
+
 			else if (sl->spacetype == SPACE_OUTLINER) {
 				SpaceOops *soops = (SpaceOops *) sl;
 				

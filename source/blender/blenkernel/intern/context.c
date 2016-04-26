@@ -693,24 +693,6 @@ struct SpaceText *CTX_wm_space_text(const bContext *C)
 	return NULL;
 }
 
-// bfa - our new tutorial editor
-struct SpaceTutorial *CTX_wm_space_tutorial(const bContext *C)
-{
-	ScrArea *sa = CTX_wm_area(C);
-	if (sa && sa->spacetype == SPACE_TUTORIAL)
-		return sa->spacedata.first;
-	return NULL;
-}
-
-// bfa - our new Inspector editor
-struct SpaceInspector *CTX_wm_space_inspector(const bContext *C)
-{
-	ScrArea *sa = CTX_wm_area(C);
-	if (sa && sa->spacetype == SPACE_INSPECTOR)
-		return sa->spacedata.first;
-	return NULL;
-}
-
 
 struct SpaceConsole *CTX_wm_space_console(const bContext *C)
 {
@@ -828,6 +810,23 @@ struct SpaceClip *CTX_wm_space_clip(const bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa && sa->spacetype == SPACE_CLIP)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+/*bfa - Tutorial editor */
+struct SpaceTutorial *CTX_wm_space_tutorial(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype == SPACE_TUTORIAL)
+		return sa->spacedata.first;
+	return NULL;
+}
+/*bfa - Inspector editor */
+struct SpaceInspector *CTX_wm_space_inspector(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype == SPACE_INSPECTOR)
 		return sa->spacedata.first;
 	return NULL;
 }

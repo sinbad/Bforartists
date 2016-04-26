@@ -1103,6 +1103,22 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->text.shade1,     143, 143, 143, 255);
 	rgba_char_args_set(btheme->text.shade2,     0xc6, 0x77, 0x77, 255);
 	rgba_char_args_set(btheme->text.hilite,     255, 0, 0, 255);
+
+	/* bfa - space tutorial */
+	btheme->ttutorial = btheme->tv3d;
+	rgba_char_args_set_fl(btheme->ttutorial.back, 0.45, 0.45, 0.45, 1.0);
+
+	rgba_char_args_set_fl(btheme->ttutorial.match, 0.2, 0.5, 0.2, 0.3);    /* highlighting search match - soft green*/
+	rgba_char_args_set_fl(btheme->ttutorial.selected_highlight, 0.51, 0.53, 0.55, 0.3);
+
+	/* bfa - space inspector */
+	btheme->tinspector = btheme->tv3d;
+	rgba_char_args_set_fl(btheme->tinspector.back, 0.45, 0.45, 0.45, 1.0);
+
+	rgba_char_args_set_fl(btheme->tinspector.match, 0.2, 0.5, 0.2, 0.3);    /* highlighting search match - soft green*/
+	rgba_char_args_set_fl(btheme->tinspector.selected_highlight, 0.51, 0.53, 0.55, 0.3);
+
+
 	
 	/* syntax highlighting */
 	rgba_char_args_set(btheme->text.syntaxn,    0, 0, 200, 255);    /* Numbers  Blue*/

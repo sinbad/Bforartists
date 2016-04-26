@@ -1670,7 +1670,16 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	{
 		km = WM_keymap_find_all(C, "Window", 0, 0);
 	}
-	
+
+	/* bfa - Tutorial editor */
+	else if (STRPREFIX(opname, "TUTORIAL_OT")) {
+		km = WM_keymap_find_all(C, "Tutorial", sl->spacetype, 0);
+	}
+
+	/* bfa - Inspector editor */
+	else if (STRPREFIX(opname, "INSPECTOR_OT")) {
+		km = WM_keymap_find_all(C, "Inspector", sl->spacetype, 0);
+	}
 	
 	/* 3D View */
 	else if (STRPREFIX(opname, "VIEW3D_OT")) {

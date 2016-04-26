@@ -18,7 +18,8 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Header, Menu
+from bpy.types import Header, Panel, Menu, Window
+from rna_prop_ui import PropertyPanel
 
 
 class INSPECTOR_HT_header(Header):

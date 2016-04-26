@@ -1897,6 +1897,56 @@ static void rna_def_userdef_theme_space_file(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
+/* bfa - space_tutorial */
+static void rna_def_userdef_theme_space_tutorial(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "ThemeTutorialEditor", NULL);
+	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+	RNA_def_struct_ui_text(srna, "Theme tutorial", "Theme settings for the tutorial");
+
+	rna_def_userdef_theme_spaces_main(srna);
+
+	prop = RNA_def_property(srna, "match", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Filter Match", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "selected_highlight", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Selected Highlight", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+}
+
+
+/* bfa - space_inspector */
+static void rna_def_userdef_theme_space_inspector(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "ThemeInspectorEditor", NULL);
+	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+	RNA_def_struct_ui_text(srna, "Theme inspector", "Theme settings for the Inspector ");
+
+	rna_def_userdef_theme_spaces_main(srna);
+
+	prop = RNA_def_property(srna, "match", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Filter Match", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "selected_highlight", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Selected Highlight", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+}
+
+
 static void rna_def_userdef_theme_space_outliner(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -3033,8 +3083,8 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 		{16, "FILE_BROWSER", ICON_FILESEL, "File Browser", ""},
 		{17, "CONSOLE", ICON_CONSOLE, "Python Console", ""},
 		{20, "CLIP_EDITOR", ICON_CLIP, "Movie Clip Editor", ""},
-		{ 21, "TUTORIAL_EDITOR", ICON_OBJECTINFO, "Tutorial Editor", "" }, // bfa - our new tutorial editor
-		{ 22, "INSPECTOR_EDITOR", ICON_INSPECTOR, "Inspector Editor", "" }, // bfa - our new inspector editor
+		{21, "TUTORIAL_EDITOR", ICON_OBJECTINFO, "Tutorial Editor", "" }, // bfa - our new tutorial editor
+		{22, "INSPECTOR_EDITOR", ICON_INSPECTOR, "Inspector Editor", "" }, // bfa - our new inspector editor
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -3169,19 +3219,19 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ThemeClipEditor");
 	RNA_def_property_ui_text(prop, "Clip Editor", "");
 
-	// doesn't work yet. VS throws odd errors about a missing semicolons before the term "tutorial_editor" when compiling. 
+	/*bfa - tutorial and inspector editor */
 
-	//prop = RNA_def_property(srna, "tutorial_editor", PROP_POINTER, PROP_NONE);
-	//RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	//RNA_def_property_pointer_sdna(prop, NULL, "ttutorial");
-	//RNA_def_property_struct_type(prop, "ThemeTutorialEditor");
-	//RNA_def_property_ui_text(prop, "Tutorial Editor", "");
+	prop = RNA_def_property(srna, "tutorial_editor", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "ttutorial");
+	RNA_def_property_struct_type(prop, "ThemeTutorialEditor");
+	RNA_def_property_ui_text(prop, "Tutorial Editor", "");
 
-	//prop = RNA_def_property(srna, "inspector_editor", PROP_POINTER, PROP_NONE);
-	//RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	//RNA_def_property_pointer_sdna(prop, NULL, "tinspector");
-	//RNA_def_property_struct_type(prop, "ThemeInspectorEditor");
-	//RNA_def_property_ui_text(prop, "Inspector Editor", "");
+	prop = RNA_def_property(srna, "inspector_editor", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "tinspector");
+	RNA_def_property_struct_type(prop, "ThemeInspectorEditor");
+	RNA_def_property_ui_text(prop, "Inspector Editor", "");
 }
 
 static void rna_def_userdef_addon(BlenderRNA *brna)
@@ -3274,6 +3324,8 @@ static void rna_def_userdef_dothemes(BlenderRNA *brna)
 	rna_def_userdef_theme_space_clip(brna);
 	rna_def_userdef_theme_colorset(brna);
 	rna_def_userdef_themes(brna);
+	rna_def_userdef_theme_space_inspector(brna);
+	rna_def_userdef_theme_space_tutorial(brna);
 }
 
 static void rna_def_userdef_solidlight(BlenderRNA *brna)

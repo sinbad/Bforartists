@@ -130,6 +130,17 @@ static int panel_aligned(ScrArea *sa, ARegion *ar)
 		return BUT_VERTICAL;
 	else if (ELEM(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS))
 		return BUT_VERTICAL;
+
+	/*bfa - tutorial editor */
+	else if (sa->spacetype == SPACE_TUTORIAL && ar->regiontype == RGN_TYPE_WINDOW) {
+		SpaceTutorial *stutorial = sa->spacedata.first;
+		return stutorial->align;
+	}
+	/*bfa - inspector editor */
+	else if (sa->spacetype == SPACE_INSPECTOR && ar->regiontype == RGN_TYPE_WINDOW) {
+		SpaceInspector *sinspector = sa->spacedata.first;
+		return sinspector->align;
+	}
 	
 	return 0;
 }
@@ -152,6 +163,24 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 		return 1;
 	else if (sa->spacetype == SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
 		return 1;
+	/*bfa - tutorial editor */
+	else if (sa->spacetype == SPACE_TUTORIAL && ar->regiontype == RGN_TYPE_WINDOW) {
+		SpaceTutorial *stutorial = sa->spacedata.first;
+
+		if (stutorial->align)
+			if (stutorial->re_align || stutorial->mainbo != stutorial->mainb)
+				return 1;
+	}
+
+	/*bfa - inspector editor */
+	else if (sa->spacetype == SPACE_INSPECTOR && ar->regiontype == RGN_TYPE_WINDOW) {
+		SpaceInspector *sinspector = sa->spacedata.first;
+
+		if (sinspector->align)
+			if (sinspector->re_align || sinspector->mainbo != sinspector->mainb)
+				return 1;
+	}
+
 
 	/* in case panel is added or disappears */
 	for (pa = ar->panels.first; pa; pa = pa->next) {

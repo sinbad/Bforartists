@@ -306,6 +306,97 @@ typedef enum eSpaceOutliner_Search_Flags {
 	SO_SEARCH_RECURSIVE     = (1 << 2),
 } eSpaceOutliner_Search_Flags;
 
+///* Tutorial Editor */  // bfa - the space link for our tutorial editor
+//typedef struct SpaceTutorial {
+//	SpaceLink *next, *prev;
+//	ListBase regionbase;
+//	int spacetype;
+//	char pad[4];
+//} SpaceTutorial;
+//
+///* Inspector Editor */  // bfa - the space link for our new Inspector editor
+//typedef struct SpaceInspector {
+//	SpaceLink *next, *prev;
+//	ListBase regionbase;
+//	int spacetype;
+//	char pad[4];
+//} SpaceInspector;
+
+/* Tutorial Editor ========================================= */
+
+typedef struct SpaceTutorial {
+	SpaceLink *next, *prev;
+	ListBase regionbase;        /* storage of regions for inactive spaces */
+	int spacetype;
+	float blockscale DNA_DEPRECATED;
+	short blockhandler[8]  DNA_DEPRECATED;
+
+	View2D v2d DNA_DEPRECATED;  /* deprecated, copied to region */
+
+	short mainb, mainbo, mainbuser; /* context tabs */
+	short re_align, align;          /* align for panels */
+	short preview;                  /* preview is signal to refresh */
+	/* texture context selector (material, lamp, particles, world, other)*/
+	short texture_context, texture_context_prev;
+	char flag, pad[7];
+
+	void *path;                     /* runtime */
+	int pathflag, dataicon;         /* runtime */
+	ID *pinid;
+
+	void *texuser;
+} SpaceTutorial;
+
+/* SpaceTutorial->flag */
+typedef enum eSpaceTutorial_Flag {
+	TUTORIAL_PIN_CONTEXT = (1 << 1),
+} eSpaceTutorial_Flag;
+
+/* sbuts->align */
+typedef enum eSpaceTutorial_Align {
+	TUTORIAL_FREE = 0,
+	TUTORIAL_HORIZONTAL = 1,
+	TUTORIAL_VERTICAL = 2,
+	TUTORIAL_AUTO = 3,
+} eSpaceTutorial_Align;
+
+/* Inspector Editor ========================================= */
+
+typedef struct SpaceInspector {
+	SpaceLink *next, *prev;
+	ListBase regionbase;        /* storage of regions for inactive spaces */
+	int spacetype;
+	float blockscale DNA_DEPRECATED;
+	short blockhandler[8]  DNA_DEPRECATED;
+
+	View2D v2d DNA_DEPRECATED;  /* deprecated, copied to region */
+
+	short mainb, mainbo, mainbuser; /* context tabs */
+	short re_align, align;          /* align for panels */
+	short preview;                  /* preview is signal to refresh */
+	/* texture context selector (material, lamp, particles, world, other)*/
+	short texture_context, texture_context_prev;
+	char flag, pad[7];
+
+	void *path;                     /* runtime */
+	int pathflag, dataicon;         /* runtime */
+	ID *pinid;
+
+	void *texuser;
+} SpaceInspector;
+
+/* SpaceTutorial->flag */
+typedef enum eSpaceInspector_Flag {
+	INSPECTOR_PIN_CONTEXT = (1 << 1),
+} eSpaceInspector_Flag;
+
+/* sbuts->align */
+typedef enum eSpaceInspector_Align {
+	INSPECTOR_FREE = 0,
+	INSPECTOR_HORIZONTAL = 1,
+	INSPECTOR_VERTICAL = 2,
+	INSPECTOR_AUTO = 3,
+} eSpaceInspector_Align;
 
 /* Graph Editor ========================================= */
 
@@ -1325,21 +1416,7 @@ typedef enum eSpaceClip_GPencil_Source {
 } eSpaceClip_GPencil_Source;
 
 
-/* Tutorial Editor */  // bfa - the space link for our tutorial editor
-typedef struct SpaceTutorial {
-	SpaceLink *next, *prev;
-	ListBase regionbase;
-	int spacetype;
-	char pad[4];
-} SpaceTutorial;
 
-/* Inspector Editor */  // bfa - the space link for our new Inspector editor
-typedef struct SpaceInspector {
-	SpaceLink *next, *prev;
-	ListBase regionbase;
-	int spacetype;
-	char pad[4];
-} SpaceInspector;
 
 /* **************** SPACE DEFINES ********************* */
 
