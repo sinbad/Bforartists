@@ -318,9 +318,9 @@ static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
 		case SPACE_CLIP:
 			return &RNA_SpaceClipEditor;
 		case SPACE_TUTORIAL: // bfa - the new tutorial editor
-			return &RNA_SpaceTutorialEditor;
+			return &RNA_ThemeTutorialEditor;
 		case SPACE_INSPECTOR: // bfa - the new inspector editor
-			return &RNA_SpaceInspectorEditor;
+			return &RNA_ThemeInspectorEditor;
 		default:
 			return &RNA_Space;
 	}

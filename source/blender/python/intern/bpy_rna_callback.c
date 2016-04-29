@@ -174,8 +174,8 @@ static eSpace_Type rna_Space_refine_reverse(StructRNA *srna)
 	if (srna == &RNA_SpaceConsole)          return SPACE_CONSOLE;
 	if (srna == &RNA_SpaceUserPreferences)  return SPACE_USERPREF;
 	if (srna == &RNA_SpaceClipEditor)       return SPACE_CLIP;
-	if (srna == &RNA_SpaceTutorialEditor)   return SPACE_TUTORIAL; // bfa - second part tutorial editor
-	if (srna == &RNA_SpaceInspectorEditor)   return SPACE_INSPECTOR; // bfa - second part inspector editor
+	if (srna == &RNA_ThemeTutorialEditor)   return SPACE_TUTORIAL; // bfa - second part tutorial editor
+	if (srna == &RNA_ThemeInspectorEditor)   return SPACE_INSPECTOR; // bfa - second part inspector editor
 	return -1;
 }
 
