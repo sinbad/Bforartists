@@ -3628,7 +3628,7 @@ static uiBlock *id_remaining_menu(bContext *C, ARegion *ar, void *arg_litem) {
 			char name[MAX_ID_NAME + 1];
 			int font_width;
 
-			///TODO: name_uiprefix_id(name, id);
+      BKE_id_ui_prefix(name, id);
 
 			font_width = BLF_width(style->widget.uifont_id, name, strlen(name));
 
@@ -3647,7 +3647,7 @@ static uiBlock *id_remaining_menu(bContext *C, ARegion *ar, void *arg_litem) {
 		PointerRNA idptr;
 		char name[MAX_ID_NAME + 1];
 
-		///TODO: name_uiprefix_id(name, id);
+    BKE_id_ui_prefix(name, id);
 
 		RNA_id_pointer_create(id, &idptr);
 
@@ -3759,7 +3759,7 @@ void uiTemplateTabs (uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 		uiStyle *style = UI_style_get();
 		char name[MAX_ID_NAME + 1];
 
-		///TODO: name_uiprefix_id(name, id);
+    BKE_id_ui_prefix(name, id);
 
 		/* ignore "temp", appears when userprefs are open */
 		if  (BLI_strcasestr((const char*)name, "temp") != 0) {
