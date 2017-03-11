@@ -26,7 +26,7 @@
  */
 
 /** \file UI_resources.h
- *  \ingroup editorui
+ *  \ingroup editoruiwidget_verts_to_quad_strip
  */
 
 #ifndef __UI_RESOURCES_H__
@@ -386,6 +386,9 @@ void UI_Theme_Restore(struct bThemeState *theme_state);
 
 // return shadow width outside menus and popups */
 int UI_ThemeMenuShadowWidth(void);
+
+// return shadow width outside tabs */
+//int UI_ThemeTabShadowWidth(void);
 
 /* only for buttons in theme editor! */
 const unsigned char *UI_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);

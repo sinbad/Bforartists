@@ -747,6 +747,9 @@ class USERPREF_PT_theme(Panel):
 
             col.label(text="Text:")
             self._theme_widget_style(col, ui.wcol_text)
+            
+            col.label(text="Tabs:")
+            self._theme_widget_style(col, ui.wcol_tab)
 
             col.label(text="Option:")
             self._theme_widget_style(col, ui.wcol_option)

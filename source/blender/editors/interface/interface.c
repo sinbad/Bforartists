@@ -2149,7 +2149,7 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
  */
 void ui_but_string_get_ex(uiBut *but, char *str, const size_t maxlen, const int float_precision)
 {
-	if (but->rnaprop && ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
+	if (but->rnaprop && ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU, UI_BTYPE_TAB)) {
 		PropertyType type;
 		const char *buf = NULL;
 		int buf_len;
@@ -2375,7 +2375,7 @@ static void ui_but_string_free_internal(uiBut *but)
 
 bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
 {
-	if (but->rnaprop && ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
+	if (but->rnaprop && ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU, UI_BTYPE_TAB)) {
 		if (RNA_property_editable(&but->rnapoin, but->rnaprop)) {
 			PropertyType type;
 
@@ -3183,6 +3183,9 @@ static uiBut *ui_def_but(
 		but->drawflag |= UI_BUT_TEXT_LEFT;
 	}
 #endif
+	else if (but->type == UI_BTYPE_TAB) {
+		but->drawflag |= UI_BUT_TEXT_LEFT;
+	}
 
 	but->drawflag |= (block->flag & UI_BUT_ALIGN);
 
@@ -3215,6 +3218,9 @@ static uiBut *ui_def_but(
 		UI_editsource_active_but_test(but);
 	}
 #endif
+	else if (but->type == UI_BTYPE_TAB) {
+		but->drawflag |= UI_BUT_TEXT_LEFT;
+	}
 
 	return but;
 }
@@ -4214,6 +4220,23 @@ uiBut *uiDefBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, const ch
 uiBut *uiDefBlockButN(uiBlock *block, uiBlockCreateFunc func, void *argN, const char *str, int x, int y, short width, short height, const char *tip)
 {
 	uiBut *but = ui_def_but(block, UI_BTYPE_BLOCK, 0, str, x, y, width, height, NULL, 0.0, 0.0, 0.0, 0.0, tip);
+	but->block_create_func = func;
+	if (but->func_argN) {
+		MEM_freeN(but->func_argN);
+	}
+	but->func_argN = argN;
+	ui_but_update(but);
+	return but;
+}
+
+uiBut *uiDefBlockButIconN(uiBlock *block, uiBlockCreateFunc func, void *argN, int icon, const char *str, int x, int y,
+                          short width, short height, const char *tip)
+{
+	uiBut *but = ui_def_but(block, UI_BTYPE_TAB, 0, str, x, y, width, height, NULL, 0.0, 0.0, 0.0, 0.0, tip);
+
+	but->icon = (BIFIconID) icon;
+	but->flag |= UI_HAS_ICON;
+
 	but->block_create_func = func;
 	if (but->func_argN) {
 		MEM_freeN(but->func_argN);

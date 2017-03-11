@@ -182,6 +182,8 @@ enum {
 	UI_BUT_UPDATE_DELAY    = (1 << 28),  /* don't run updates while dragging (needed in rare cases). */
 	UI_BUT_TEXTEDIT_UPDATE = (1 << 29),  /* when widget is in textedit mode, update value on each char stroke */
 	UI_BUT_VALUE_CLEAR     = (1 << 30),  /* show 'x' icon to clear/unlink value of text or search button */
+
+	UI_BUT_TAB_EXTRA       = (1 << 31),  /* this tab button needs some special handling */
 };
 
 #define UI_PANEL_WIDTH          340
@@ -220,6 +222,9 @@ enum {
 #define UI_DPI_WINDOW_FAC (((float)U.dpi) / 72.0f)
 /* 16 to copy ICON_DEFAULT_HEIGHT */
 #define UI_DPI_ICON_SIZE ((float)16 * UI_DPI_FAC)
+
+/* padding between tabs */
+#define UI_TAB_MARGIN_X (iroundf(4 * UI_DPI_FAC))
 
 /* Button types, bits stored in 1 value... and a short even!
  * - bits 0-4:  bitnr (0-31)
@@ -272,20 +277,21 @@ typedef enum {
 	UI_BTYPE_LISTROW                = (37 << 9),
 	UI_BTYPE_HSVCIRCLE              = (38 << 9),
 	UI_BTYPE_TRACK_PREVIEW          = (40 << 9),
+	UI_BTYPE_TAB                    = (41 << 9),
 
 	/* buttons with value >= UI_BTYPE_SEARCH_MENU don't get undo pushes */
-	UI_BTYPE_SEARCH_MENU            = (41 << 9),
-	UI_BTYPE_EXTRA                  = (42 << 9),
-	UI_BTYPE_HOTKEY_EVENT           = (46 << 9),
-	UI_BTYPE_IMAGE                  = (47 << 9),  /* non-interactive image, used for splash screen */
-	UI_BTYPE_HISTOGRAM              = (48 << 9),
-	UI_BTYPE_WAVEFORM               = (49 << 9),
-	UI_BTYPE_VECTORSCOPE            = (50 << 9),
-	UI_BTYPE_PROGRESS_BAR           = (51 << 9),
-	UI_BTYPE_NODE_SOCKET            = (53 << 9),
-	UI_BTYPE_SEPR                   = (54 << 9),
-	UI_BTYPE_SEPR_LINE              = (55 << 9),
-	UI_BTYPE_GRIP                   = (56 << 9),  /* resize handle (resize uilist) */
+	UI_BTYPE_SEARCH_MENU            = (42 << 9),
+	UI_BTYPE_EXTRA                  = (43 << 9),
+	UI_BTYPE_HOTKEY_EVENT           = (47 << 9),
+	UI_BTYPE_IMAGE                  = (48 << 9),  /* non-interactive image, used for splash screen */
+	UI_BTYPE_HISTOGRAM              = (49 << 9),
+	UI_BTYPE_WAVEFORM               = (50 << 9),
+	UI_BTYPE_VECTORSCOPE            = (51 << 9),
+	UI_BTYPE_PROGRESS_BAR           = (52 << 9),
+	UI_BTYPE_NODE_SOCKET            = (54 << 9),
+	UI_BTYPE_SEPR                   = (55 << 9),
+	UI_BTYPE_SEPR_LINE              = (56 << 9),
+	UI_BTYPE_GRIP                   = (57 << 9),  /* resize handle (resize uilist) */
 } eButType;
 
 #define BUTTYPE     (63 << 9)
@@ -660,6 +666,7 @@ uiBut *uiDefIconMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, int ic
 
 uiBut *uiDefBlockBut(uiBlock *block, uiBlockCreateFunc func, void *func_arg1, const char *str, int x, int y, short width, short height, const char *tip);
 uiBut *uiDefBlockButN(uiBlock *block, uiBlockCreateFunc func, void *argN, const char *str, int x, int y, short width, short height, const char *tip);
+uiBut *uiDefBlockButIconN(uiBlock *block, uiBlockCreateFunc func, void *argN, int icon, const char *str, int x, int y, short width, short height, const char *tip);
 
 uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int retval, int icon, int x, int y, short width, short height, const char *tip);
 uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int icon, const char *str, int x, int y, short width, short height, const char *tip);
@@ -949,6 +956,8 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplateComponentMenu(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name);
 void uiTemplateNodeSocket(uiLayout *layout, struct bContext *C, float *color);
 void uiTemplateCacheFile(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname);
+void uiTemplateTabs(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
+                    const char *newop, const char *unlinkop);
 
 /* Default UIList class name, keep in sync with its declaration in bl_ui/__init__.py */
 #define UI_UL_DEFAULT_CLASS_NAME "UI_UL_list"

@@ -381,6 +381,7 @@ typedef struct uiAfterFunc {
 	int a2;
 
 	wmOperatorType *optype;
+	wmOperatorType *newoptype, *unloptype;
 	int opcontext;
 	PointerRNA *opptr;
 
@@ -485,7 +486,7 @@ bool ui_but_is_editable_as_text(const uiBut *but)
 {
 	return  ELEM(but->type,
 	             UI_BTYPE_TEXT, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER,
-	             UI_BTYPE_SEARCH_MENU);
+	             UI_BTYPE_SEARCH_MENU, UI_BTYPE_TAB);
 
 }
 
@@ -640,8 +641,8 @@ PointerRNA *ui_handle_afterfunc_add_operator(wmOperatorType *ot, int opcontext, 
  */
 static bool ui_afterfunc_check(const uiBlock *block, const uiBut *but)
 {
-	return (but->func || but->funcN || but->rename_func || but->optype || but->rnaprop || block->handle_func ||
-	        (but->type == UI_BTYPE_BUT_MENU && block->butm_func));
+	return (but->func || but->funcN || but->rename_func ||but->newoptype || but->unloptype || but->optype || but->rnaprop || block->handle_func ||
+	        (but->type == UI_BTYPE_BUT_MENU && block->butm_func ));
 }
 
 static void ui_apply_but_func(bContext *C, uiBut *but)
@@ -686,6 +687,10 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 		after->optype = but->optype;
 		after->opcontext = but->opcontext;
 		after->opptr = but->opptr;
+
+    if (but->type == UI_BTYPE_TAB && (but->flag & UI_SUBBUT_ACTIVE)) {
+        after->unloptype = but->unloptype;
+    }
 
 		after->rnapoin = but->rnapoin;
 		after->rnaprop = but->rnaprop;
@@ -774,6 +779,12 @@ static void ui_apply_but_funcs_after(bContext *C)
 
 		if (after.optype)
 			WM_operator_name_call_ptr(C, after.optype, after.opcontext, (after.opptr) ? &opptr : NULL);
+
+		if (after.newoptype)
+			WM_operator_name_call(C, after.newoptype->idname, after.opcontext, NULL);
+
+		if (after.unloptype)
+			WM_operator_name_call(C, after.unloptype->idname, after.opcontext, NULL);
 
 		if (after.opptr)
 			WM_operator_properties_free(&opptr);
@@ -912,6 +923,28 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
 		but->rename_orig = data->origstr;
 		data->origstr = NULL;
 	}
+	ui_apply_but_func(C, but);
+
+	data->retval = but->retval;
+	data->applied = true;
+}
+
+static void ui_apply_but_TAB(bContext *C, uiBut *but, uiHandleButtonData *data)
+{
+	if (data->state & BUTTON_STATE_TEXT_EDITING) {
+		if (!data->str)
+			return;
+
+		ui_but_string_set(C, but, data->str);
+		ui_but_update_edited(but);
+
+		/* give butfunc the original text too */
+		/* feature used for bone renaming, channels, etc */
+		/* afterfunc frees origstr */
+		but->rename_orig = data->origstr;
+		data->origstr = NULL;
+	}
+
 	ui_apply_but_func(C, but);
 
 	data->retval = but->retval;
@@ -1675,6 +1708,25 @@ static bool ui_but_contains_point_px_icon(uiBut *but, ARegion *ar, const wmEvent
 	return BLI_rcti_isect_pt(&rect, x, y);
 }
 
+static bool ui_but_mouse_inside_tab_unlink(bContext *C, uiBut *but, int mx, int my) {
+	if (but->type == UI_BTYPE_TAB && !(but->flag == UI_BUT_TAB_EXTRA)) {
+		ARegion *ar = CTX_wm_region(C);
+		rcti rect;
+
+		ui_window_to_block(ar, but->block, &mx, &my);
+
+		BLI_rcti_rctf_copy(&rect, &but->rect);
+
+		rect.xmin = rect.xmax - 18 * UI_DPI_FAC;
+		rect.xmax = rect.xmin + 11 * UI_DPI_FAC;
+		rect.ymin = rect.ymax - 20 * UI_DPI_FAC;
+		rect.ymax = rect.ymin + 11 * UI_DPI_FAC;
+
+		return BLI_rcti_isect_pt(&rect, mx, my);
+	}
+	return false;
+}
+
 static bool ui_but_drag_init(
         bContext *C, uiBut *but,
         uiHandleButtonData *data, const wmEvent *event)
@@ -2090,6 +2142,9 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		case UI_BTYPE_SEARCH_MENU:
 			ui_apply_but_TEX(C, but, data);
 			break;
+		case UI_BTYPE_TAB:
+			ui_apply_but_TAB(C, but, data);
+			break;
 		case UI_BTYPE_BUT_TOGGLE:
 		case UI_BTYPE_TOGGLE:
 		case UI_BTYPE_TOGGLE_N:
@@ -2397,7 +2452,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	}
 
 	/* text/string and ID data */
-	else if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
+	else if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU, UI_BTYPE_TAB)) {
 		uiHandleButtonData *active_data = but->active;
 
 		if (but->poin == NULL && but->rnapoin.data == NULL) {
@@ -3184,7 +3239,7 @@ static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 	}
 	for (but = block->buttons.first; but != actbut; but = but->next) {
 		if (ui_but_is_editable_as_text(but)) {
-			if (!(but->flag & UI_BUT_DISABLED)) {
+			if (!(but->flag & UI_BUT_DISABLED) && !(but->flag & UI_BUT_TAB_EXTRA)) {
 				data->postbut = but;
 				data->posttype = BUTTON_ACTIVATE_TEXT_EDITING;
 				return;
@@ -3624,6 +3679,7 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
 	void *arg = NULL;
 
 	switch (but->type) {
+		case UI_BTYPE_TAB:
 		case UI_BTYPE_BLOCK:
 		case UI_BTYPE_PULLDOWN:
 			if (but->menu_create_func) {
@@ -4928,6 +4984,68 @@ static int ui_do_but_LISTROW(
 	}
 
 	return ui_do_but_EXIT(C, but, data, event);
+}
+
+static void ui_tab_unlink_popup(bContext *C, uiBut *but) {
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	pup = UI_popup_menu_begin(C, but->idwarning, ICON_ERROR);
+	layout = UI_popup_menu_layout(pup);
+
+	uiItemO(layout, IFACE_("Yes"), ICON_NONE, but->unloptype->idname);
+	uiItemV(layout, IFACE_("No"), ICON_NONE, 0);
+
+	UI_popup_menu_end(C, pup);
+}
+
+static int ui_do_but_TAB(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
+{
+	if (data->state == BUTTON_STATE_HIGHLIGHT) {
+		if (but->block_create_func) {
+			if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
+				button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
+				return WM_UI_HANDLER_BREAK;
+			}
+		}
+		else if ((ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY)) && event->val == KM_PRESS && !event->ctrl) {
+			if (but->flag & UI_SUBBUT_ACTIVE) {
+				ui_tab_unlink_popup(C, but);
+			}
+			else {
+				ui_apply_but(C, but->block, but, data, false);
+			}
+			button_activate_state(C, but, event->type != LEFTMOUSE ? BUTTON_STATE_WAIT_FLASH :
+			                              BUTTON_STATE_WAIT_RELEASE);
+			return WM_UI_HANDLER_BREAK;
+		}
+		else if ((ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS && event->ctrl) ||
+		         (event->type == LEFTMOUSE && event->val == KM_DBL_CLICK)) {
+			if (!(but->flag & UI_BUT_TAB_EXTRA)) {
+				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+				return WM_UI_HANDLER_BREAK;
+			}
+		}
+	}
+	else if (data->state == BUTTON_STATE_WAIT_RELEASE) {
+		if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+			if (!(but->flag & UI_SELECT)) {
+				data->cancel = true;
+			}
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
+	else if (data->state == BUTTON_STATE_TEXT_EDITING) {
+		ui_do_but_textedit(C, block, but, data, event);
+		return WM_UI_HANDLER_BREAK;
+	}
+	else if (data->state == BUTTON_STATE_TEXT_SELECTING) {
+		ui_do_but_textedit_select(C, block, but, data, event);
+		return WM_UI_HANDLER_BREAK;
+	}
+
+	return WM_UI_HANDLER_CONTINUE;
 }
 
 static int ui_do_but_BLOCK(
@@ -6668,6 +6786,12 @@ static void popup_add_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 	UI_popup_block_ex(C, menu_add_shortcut, NULL, menu_add_shortcut_cancel, but);
 }
 
+static void tab_rename(bContext *C, void *arg1, void *UNUSED(arg2))
+{
+	uiBut *but = (uiBut *)arg1;
+	button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+}
+
 /**
  * menu to chow when right clicking on the panel header
  */
@@ -6759,6 +6883,17 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 
 	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
+	if (but->type == UI_BTYPE_TAB && !(but->flag & UI_BUT_TAB_EXTRA)) {
+		uiBlock *block = uiLayoutGetBlock(layout);
+		uiBut *but2;
+		int w = uiLayoutGetWidth(layout);
+
+		but2 = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_NONE, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename"),
+		                        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+		UI_but_func_set(but2, tab_rename, but, NULL);
+		but2 = uiDefIconTextButO(block, UI_BTYPE_BUT, but->newoptype->idname, WM_OP_INVOKE_DEFAULT, ICON_NONE,
+		                         CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New"), 0, 0, w, UI_UNIT_Y, "");
+	}
 	if (but->rnapoin.data && but->rnaprop) {
 		PointerRNA *ptr = &but->rnapoin;
 		PropertyRNA *prop = but->rnaprop;
@@ -7126,6 +7261,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			break;
 		case UI_BTYPE_LISTROW:
 			retval = ui_do_but_LISTROW(C, but, data, event);
+			break;
+		case UI_BTYPE_TAB:
+			retval = ui_do_but_TAB(C, block, but, data, event);
 			break;
 		case UI_BTYPE_ROUNDBOX:
 		case UI_BTYPE_LABEL:
@@ -8341,6 +8479,19 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 					/* re-enable tooltip on mouse move */
 					ui_blocks_set_tooltips(ar, true);
 					button_tooltip_timer_reset(C, but);
+				}
+				if (but->type == UI_BTYPE_TAB) {
+					ARegion *ar = data->region;
+					if (ui_but_mouse_inside_tab_unlink(C, but, event->x, event->y) && (but->flag & UI_PUSHED)) {
+						if (!(but->flag & UI_BUT_TAB_EXTRA)) {
+							but->flag |= UI_SUBBUT_ACTIVE;
+						}
+					}
+					else {
+						but->flag &= ~UI_SUBBUT_ACTIVE;
+					}
+					ui_do_button(C, block, but, event);
+					ED_region_tag_redraw(ar);
 				}
 
 				break;

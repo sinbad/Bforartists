@@ -108,8 +108,10 @@ typedef struct TemplateID {
 	PropertyRNA *prop;
 
 	ListBase *idlb;
+	ListBase *remidlb; /* remaining IDs that are moved under '...' tab */
 	int prv_rows, prv_cols;
 	bool preview;
+	const char *newop, *unlinkop;
 } TemplateID;
 
 /* Search browse menu, assign  */
@@ -3591,6 +3593,221 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	if (screen->animtimer)
 		uiDefIconTextBut(block, UI_BTYPE_BUT, B_STOPANIM, ICON_CANCEL, IFACE_("Anim Player"), 0, 0, UI_UNIT_X * 5.0f, UI_UNIT_Y,
 		                 NULL, 0.0f, 0.0f, 0, 0, TIP_("Stop animation playback"));
+}
+
+/************************* Tabs **************************/
+
+/* currently not working, needs to be checked  */
+static void tab_call_cb(bContext *C, void *arg_template, void *item)
+{
+	TemplateID *template = (TemplateID *)arg_template;
+
+	/* ID */
+	if (item) {
+		PointerRNA idptr;
+
+		RNA_id_pointer_create(item, &idptr);
+		RNA_property_pointer_set(&template->ptr, template->prop, idptr);
+		RNA_property_update(C, &template->ptr, template->prop);
+	}
+}
+
+/* '...' tab menu */
+static uiBlock *id_remaining_menu(bContext *C, ARegion *ar, void *arg_litem) {
+	uiBlock *block;
+	uiBut *but;
+	ID *id;
+	uiLayout *layout;
+	uiStyle *style = UI_style_get();
+	TemplateID *template = (TemplateID *)arg_litem;
+	int width = 0;
+
+	/* get dynamic menu width  */
+	{
+		for (id = template->remidlb->first; id; id = id->next) {
+			char name[MAX_ID_NAME + 1];
+			int font_width;
+
+			///TODO: name_uiprefix_id(name, id);
+
+			font_width = BLF_width(style->widget.uifont_id, name, strlen(name));
+
+			if (font_width > width) {
+				width = font_width;
+			}
+		}
+	}
+
+	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS_PULLDOWN);
+	UI_block_flag_enable(block, UI_BLOCK_LOOP); ///TODO: | UI_BLOCK_REDRAW);
+
+	layout = UI_block_layout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, UI_UNIT_X * 2 + width, 0, 0, style);
+
+	for (id = template->remidlb->first; id; id = id->next) {
+		PointerRNA idptr;
+		char name[MAX_ID_NAME + 1];
+
+		///TODO: name_uiprefix_id(name, id);
+
+		RNA_id_pointer_create(id, &idptr);
+
+		but = uiDefButR(block, UI_BTYPE_BUT, 0, name, 0, 0, 0, UI_UNIT_Y,
+		                &idptr, "name", 0, 0, 0, 0, 0, "");
+		UI_but_func_set(but, tab_call_cb, arg_litem, idptr.data);
+	}
+
+	uiItemS(layout);
+
+	if (template->newop) {
+		but = uiDefIconTextButO(block, UI_BTYPE_BUT, template->newop, WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN,
+		                        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New"), 0, 0,
+		                        0, UI_UNIT_Y, NULL);
+	}
+	if (template->unlinkop) {
+		but = uiDefIconTextButO(block, UI_BTYPE_BUT, template->unlinkop, WM_OP_INVOKE_DEFAULT, ICON_ZOOMOUT,
+		                        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Delete"), 0, 0,
+		                        0, UI_UNIT_Y, NULL);
+	}
+
+	UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
+	UI_block_direction_set(block, UI_DIR_DOWN);
+	UI_block_end(C, block);
+
+	return block;
+}
+
+static void ui_template_tab_draw(uiLayout *layout, TemplateID *template, ID *id, StructRNA *type, int width,
+                                 char *name, const char *newop, const char *unlinkop)
+{
+	uiBlock *subblock;
+	uiBut *but;
+	PointerRNA idptr, act_idptr; /* Active ID pointer */
+
+	subblock = uiLayoutGetBlock(layout);
+	UI_block_align_begin(subblock);
+
+	act_idptr = RNA_property_pointer_get(&template->ptr, template->prop);
+
+	RNA_id_pointer_create(id, &idptr);
+
+	/*draw tab*/
+	but = uiDefButR(subblock, UI_BTYPE_TAB, 0, name, 0, 0, width, UI_UNIT_Y + 2,
+	                &idptr, "name", 0, 0, 0, 0, 0, RNA_struct_ui_description(type));
+	UI_but_funcN_set(but, tab_call_cb, MEM_dupallocN(template), idptr.data);
+
+	/* Warning that appears when using "x" button */
+	BLI_snprintf(but->idwarning, sizeof(but->idwarning), "%s %s%s", "Delete this", RNA_struct_ui_description(type), "?");
+
+	if  (idptr.data == act_idptr.data) {
+		but->flag |= UI_PUSHED;
+	}
+
+	/* assign unlink operator */
+	if (unlinkop) {
+		wmOperatorType *ot = WM_operatortype_find(unlinkop, 0);
+		but->unloptype = ot;
+	}
+	if (newop) {
+		wmOperatorType *ot = WM_operatortype_find(newop, 0);
+		but->newoptype = ot;
+	}
+
+	UI_block_align_end(subblock);
+}
+
+void uiTemplateTabs (uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname,
+                     const char *newop, const char *unlinkop)
+{
+	PropertyRNA *prop;
+	TemplateID *template;
+	StructRNA *type;
+	ARegion *ar = CTX_wm_region(C);
+	uiBlock *block;
+	ID *id;
+	short idcode;
+	const int x_ofs = UI_TAB_MARGIN_X;
+	int width_all = 0;
+	bool stacking = false;
+
+	prop = RNA_struct_find_property(ptr, propname);
+
+	if (!prop) {
+		RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	template = MEM_callocN(sizeof(TemplateID), "template");
+	template->ptr = *ptr;
+	template->prop = prop;
+
+
+	type = RNA_property_pointer_type(ptr, prop);
+	idcode = RNA_type_to_ID_code(type);
+	template->idlb = which_libbase(CTX_data_main(C), idcode);
+
+	template->remidlb = MEM_callocN(sizeof(ListBase), "remidlb");
+	BLI_duplicatelist(template->remidlb, template->idlb);
+
+	if (newop) template->newop = newop;
+	if (unlinkop) template->unlinkop = unlinkop;
+
+	block = uiLayoutGetBlock(layout);
+	UI_block_align_begin(block);
+
+	for (id = template->idlb->first; id; id = id->next) {
+		int width;
+		uiStyle *style = UI_style_get();
+		char name[MAX_ID_NAME + 1];
+
+		///TODO: name_uiprefix_id(name, id);
+
+		/* ignore "temp", appears when userprefs are open */
+		if  (BLI_strcasestr((const char*)name, "temp") != 0) {
+			continue;
+		}
+
+		/* tab size */
+		width = BLF_width(style->widget.uifont_id, name, strlen(name));
+		width = UI_UNIT_X * 0.75 + x_ofs + width;
+		width_all += width;
+
+		/* only draw tabs if theres enough space */
+		if (width_all + UI_UNIT_X + x_ofs > ar->sizex / 3) {
+			stacking = true;
+		}
+		else {
+			/* draw tabs */
+			ui_template_tab_draw(layout, template, id, type, width, name, newop, unlinkop);
+			BLI_pophead(template->remidlb);
+		}
+	}
+	{
+		uiBlock *subblock;
+		uiBut *but = 0;
+
+		subblock = uiLayoutGetBlock(layout);
+		UI_block_align_begin(subblock);
+
+		if (stacking) {
+			but = uiDefBlockButIconN(block, id_remaining_menu, MEM_dupallocN(template), ICON_COLLAPSEMENU, "", 0, 0,
+			                         UI_UNIT_X + x_ofs, UI_UNIT_Y + 2, "More..." );
+		}
+		else {
+			if (newop) {
+				but = uiDefIconTextButO(block, UI_BTYPE_TAB, newop, WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN,
+				                        CTX_IFACE_(template_id_context(type), "New"), 0, 0,
+				                        UI_UNIT_X + x_ofs, UI_UNIT_Y + 2, NULL);
+				but->drawflag &= ~UI_BUT_ICON_LEFT;
+			}
+		}
+		UI_but_flag_enable(but, UI_BUT_TAB_EXTRA);
+
+		UI_block_align_end(subblock);
+	}
+
+	UI_block_align_end(block);
+
+	MEM_freeN(template);
 }
 
 /************************* Reports for Last Operator Template **************************/

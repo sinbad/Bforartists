@@ -1878,6 +1878,19 @@ static struct uiWidgetColors wcol_list_item = {
 	0, 0
 };
 
+static struct uiWidgetColors wcol_tab = {
+	{60, 60, 60, 255},
+	{83, 83, 83, 255},
+	{114, 114, 114, 255},
+	{90, 90, 90, 255},
+
+	{0, 0, 0, 255},
+	{255, 255, 255, 255},
+
+	0,
+	0, 0
+};
+
 /* free wcol struct to play with */
 static struct uiWidgetColors wcol_tmp = {
 	{0, 0, 0, 255},
@@ -1900,6 +1913,7 @@ void ui_widget_color_init(ThemeUI *tui)
 	tui->wcol_tool = wcol_tool;
 	tui->wcol_text = wcol_text;
 	tui->wcol_radio = wcol_radio;
+	tui->wcol_tab = wcol_tab;
 	tui->wcol_option = wcol_option;
 	tui->wcol_toggle = wcol_toggle;
 	tui->wcol_num = wcol_num;
@@ -2129,6 +2143,23 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 	}
 }
 
+static void widget_state_tab(uiWidgetType *wt, int state)
+{
+    wt->wcol = *(wt->wcol_theme);
+
+    if (state & UI_PUSHED) {
+        copy_v3_v3_char(wt->wcol.inner, wt->wcol.inner_sel);
+    }
+	else if (state & UI_ACTIVE) {
+		copy_v3_v3_char(wt->wcol.inner, wt->wcol.item);
+	}
+	if (state & UI_TEXTINPUT) {
+		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
+		if (!(state & UI_PUSHED))
+		copy_v3_v3_char(wt->wcol.item, wt->wcol.inner_sel);
+	}
+}
+
 
 /* ************ menu backdrop ************************* */
 
@@ -2208,6 +2239,162 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 	glDisable(GL_BLEND);
 }
 
+/* ***************** tabs ***************** */
+
+/* outside of rect, rad to left/bottom/right */
+static void widget_tab_softshadow(const rcti *rect, int roundboxalign, const float radin, const float radout)
+{
+	bTheme *btheme = UI_GetTheme();
+	uiWidgetBase wtb;
+	rcti rect1 = *rect;
+	float alphastep;
+	int step, totvert;
+	float quad_strip[WIDGET_SIZE_MAX * 2 + 2][2];
+
+	/* disabled shadow */
+	if (radout == 0.0f)
+		return;
+
+	/* prevent tooltips to not show round shadow */
+	if (radout > 0.2f * BLI_rcti_size_y(&rect1))
+		rect1.ymax -= 0.2f * BLI_rcti_size_y(&rect1);
+	else
+		rect1.ymax -= radout;
+
+	/* inner part */
+	totvert = round_box_shadow_edges(wtb.inner_v, &rect1, radin,
+	                                 roundboxalign & (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT), 0.0f);
+
+	/* we draw a number of increasing size alpha quad strips */
+	alphastep = 3.0f * btheme->tui.menu_shadow_fac / radout; //Todo: Add tab_shadow_fac in userprefs
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+
+	for (step = 1; step <= (int)radout; step++) {
+		float expfac = sqrtf(step / radout);
+
+		round_box_shadow_edges(wtb.outer_v, &rect1, radin, UI_CNR_ALL, (float)step);
+
+		glColor4f(0.0f, 0.0f, 0.0f, alphastep * (1.0f - expfac));
+
+		///TODO: widget_verts_to_quad_strip(&wtb, totvert, quad_strip);
+
+		glVertexPointer(2, GL_FLOAT, 0, quad_strip);
+		glDrawArrays(GL_QUAD_STRIP, 0, totvert * 2); /* add + 2 for getting a complete soft rect.
+													  * Now it skips top edge to allow transparent menus */
+	}
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+static void uiWidgetTabDraw(uiBut *but, uiWidgetColors *wcol, rcti *rect, const int state, int roundboxalign,
+                            const float rad, const int px, const bool is_active)
+{
+	uiStyle *style = UI_style_get();
+	const uiFontStyle *fstyle = &style->widget;
+	const int fontid = fstyle->uifont_id;
+
+	/* Secondary theme colors */
+	unsigned char theme_col_tab_highlight[3];
+	unsigned char theme_col_tab_highlight_inactive[3];
+
+	interp_v3_v3v3_uchar(theme_col_tab_highlight, (unsigned char *)wcol->inner_sel,
+	                     (unsigned char *)wcol->text_sel, 0.2f);
+	interp_v3_v3v3_uchar(theme_col_tab_highlight_inactive, (unsigned char *)wcol->inner,
+	                     (unsigned char *)wcol->text_sel, 0.12f);
+
+	/* delete tab button */
+	if (is_active && !(state & UI_TEXTINPUT) && !(but->flag & UI_BUT_TAB_EXTRA)) {
+		bool subbut_is_active = false;
+
+		if (state & UI_SUBBUT_ACTIVE) {
+			subbut_is_active = true;
+		}
+
+		glColor3ubv((unsigned char *)wcol->item);
+		ui_draw_but_TAB_unlink(rect, rad, subbut_is_active ? wcol->inner : NULL);
+	}
+
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	/* tab outline */
+	glColor3ubv((unsigned char *)wcol->outline);
+	ui_draw_but_TAB(GL_LINE_STRIP, rect->xmin - px, rect->ymin - px, rect->xmax + px, rect->ymax + px, rad,
+	                roundboxalign, true, false, NULL, NULL);
+
+	/* tab highlight (3d look) */
+	glShadeModel(GL_SMOOTH);
+	glColor3ubv(is_active ? theme_col_tab_highlight : theme_col_tab_highlight_inactive);
+	ui_draw_but_TAB(GL_LINE_STRIP, rect->xmin, rect->ymin, rect->xmax, rect->ymax,
+	                rad, roundboxalign, true, is_active ? true : false,
+	                is_active ? theme_col_tab_highlight : theme_col_tab_highlight_inactive,
+	                (unsigned char*)wcol->inner);
+
+	glShadeModel(GL_FLAT);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glEnd();
+
+	/* text shadow */
+	//BLF_enable(fontid, BLF_SHADOW);
+	//BLF_shadow(fontid, 3, {1.0f, 1.0f, 1.0f, 0.25f});
+	//BLF_shadow_offset(fontid, 0, -1);
+}
+
+static void widget_tab(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	uiWidgetBase wtb;
+	const float rad = 0.2f * U.widget_unit;
+	const int px = (max_ii(1, iroundf(U.pixelsize)));
+	int x_ofs = UI_TAB_MARGIN_X;    /* padding between tabs*/
+	bool is_active = false;
+
+	widget_init(&wtb);
+
+	if (state & UI_PUSHED) {
+		is_active = true;
+	}
+
+	rect->xmax -= x_ofs / 2;
+	rect->xmin += x_ofs / 2;
+	BLI_rcti_translate(rect, 0, -(px + 1));
+
+	/* half rounded */
+	round_box_edges(&wtb, UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT, rect, rad);
+
+	/* tab shadow */
+	if (is_active) {
+		glEnable(GL_BLEND);
+		widget_tab_softshadow(rect, roundboxalign, rad, 12 * UI_DPI_FAC); //<-- radout is an ugly hardcoded thing! Todo: Add userpref option (tab_shadow_width)!
+		glDisable(GL_BLEND);
+	}
+
+	/* drawing */
+	widgetbase_draw(&wtb, wcol);
+	uiWidgetTabDraw(but, wcol, rect, state, roundboxalign, rad, px, is_active);
+
+	/* text position */ /* clean up! */
+	if (!(state & UI_TEXTINPUT) && !(but->flag & UI_BUT_TAB_EXTRA)) {
+		rect->ymin += 5 * px;
+		rect->xmin -= 5 * UI_DPI_FAC;
+		if (is_active) {
+			rect->xmin -= 8 * UI_DPI_FAC;
+		}
+	}
+	else if (!(but->flag & UI_BUT_TAB_EXTRA)){
+		rect->ymin += 2 * px;
+		if (state & UI_PUSHED) {
+			rect->xmin -= 4 * UI_DPI_FAC;
+		}
+		else if (state & UI_TEXTINPUT){
+			rect->xmin += 3 * UI_DPI_FAC;
+			rect->ymin += px;
+		}
+	}
+}
+
+/* ***************** hsv circle ***************** */
 
 static void ui_hsv_cursor(float x, float y)
 {
@@ -3445,7 +3632,13 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.wcol_theme = &btheme->tui.wcol_tooltip;
 			wt.draw = widget_menu_back;
 			break;
-			
+
+		case UI_WTYPE_TAB:
+			wt.wcol_theme = &btheme->tui.wcol_tab;
+			wt.custom = widget_tab;
+			wt.state = widget_state_tab;
+			break;
+
 			
 		/* strings */
 		case UI_WTYPE_NAME:
@@ -3740,7 +3933,11 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 					}
 				}
 				break;
-				
+
+			case UI_BTYPE_TAB:
+				wt = widget_type(UI_WTYPE_TAB);
+				break;
+
 			case UI_BTYPE_PULLDOWN:
 				wt = widget_type(UI_WTYPE_PULLDOWN);
 				break;

@@ -920,6 +920,13 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_float_array(func, "color", 4, node_socket_color_default, 0.0f, 1.0f, "Color", "", 0.0f, 1.0f);
 
+	/* Tabs */
+	func = RNA_def_function(srna, "template_tabs", "uiTemplateTabs");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	api_ui_item_rna_common(func);
+	RNA_def_string(func, "new", NULL, 0, "", "Operator identifier to create a new ID block");
+	RNA_def_string(func, "unlink", NULL, 0, "", "Operator identifier to unlink the ID block");
+
 	func = RNA_def_function(srna, "template_cache_file", "uiTemplateCacheFile");
 	RNA_def_function_ui_description(func, "Item(s). User interface for selecting cache files and their source paths");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

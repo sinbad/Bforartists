@@ -73,7 +73,8 @@ typedef enum {
 	UI_WTYPE_SLIDER,
 	UI_WTYPE_EXEC,
 	UI_WTYPE_TOOLTIP,
-	
+	UI_WTYPE_TAB,
+
 	/* strings */
 	UI_WTYPE_NAME,
 	UI_WTYPE_NAME_LINK,
@@ -117,9 +118,11 @@ enum {
 	UI_SELECT       = (1 << 0),  /* use when the button is pressed */
 	UI_SCROLLED     = (1 << 1),  /* temp hidden, scrolled away */
 	UI_ACTIVE       = (1 << 2),
-	UI_HAS_ICON     = (1 << 3),
-	UI_TEXTINPUT    = (1 << 4),
-	UI_HIDDEN       = (1 << 5),
+	UI_PUSHED       = (1 << 3),
+	UI_HAS_ICON     = (1 << 4),
+	UI_TEXTINPUT    = (1 << 5),
+	UI_HIDDEN       = (1 << 6),
+	UI_SUBBUT_ACTIVE = (1 << 7),
 	/* warn: rest of uiBut->flag in UI_interface.h */
 };
 
@@ -270,6 +273,7 @@ struct uiBut {
 	const char *tip;
 	uiButToolTipFunc tip_func;
 	void *tip_argN;
+	char idwarning[80]; /* unlinking tabs prints this warning */
 
 	/* info on why button is disabled, displayed in tooltip */
 	const char *disabled_info;
@@ -300,6 +304,7 @@ struct uiBut {
 
 	/* Operator data */
 	struct wmOperatorType *optype;
+	struct wmOperatorType *unloptype, *newoptype;
 	struct PointerRNA *opptr;
 	short opcontext;
 	unsigned char menu_key; /* 'a'-'z', always lower case */
@@ -639,6 +644,11 @@ extern void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, floa
 
 void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, const float alpha);
 
+void ui_draw_but_TAB(int mode, float minx, float miny, float maxx, float maxy, float rad,
+                     int roundboxtype,
+                     const bool use_highlight, const bool use_shadow,
+                     unsigned char highlight[3], unsigned char highlight_fade[3]);
+void ui_draw_but_TAB_unlink(const rcti *rect, const float rad, char *inner);
 void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
 void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
 void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);

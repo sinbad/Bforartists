@@ -127,7 +127,8 @@ class INFO_HT_header(Header):
             layout.operator("screen.back_to_previous", icon='SCREEN_BACK', text="Back to Previous")
             layout.separator()
         else:
-            layout.template_ID(context.window, "screen", new="screen.new", unlink="screen.delete")
+            layout.template_tabs(context.window, "screen", new="screen.new", unlink="screen.delete")
+            #layout.template_ID(context.window, "screen", new="screen.new", unlink="screen.delete")
 
         layout.separator()
 

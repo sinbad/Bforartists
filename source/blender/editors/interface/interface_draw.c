@@ -402,6 +402,110 @@ void UI_draw_text_underline(int pos_x, int pos_y, int len, int height)
 
 /* ************** SPECIAL BUTTON DRAWING FUNCTIONS ************* */
 
+/* ***************** tabs ***************** */
+void ui_draw_but_TAB(int mode, float minx, float miny, float maxx, float maxy, float rad,
+                     int roundboxtype,
+                     const bool use_highlight, const bool use_shadow,
+                     unsigned char highlight[3], unsigned char highlight_fade[3])
+{
+	float vec[4][2] = {
+	    {0.195, 0.02},
+	    {0.55, 0.169},
+	    {0.831, 0.45},
+	    {0.98, 0.805}};
+	int a;
+
+	/* mult */
+	for (a = 0; a < 4; a++) {
+		mul_v2_fl(vec[a], rad);
+	}
+
+	glBegin(mode);
+
+	/* start with corner left-top */
+	if (use_highlight) {
+		if (roundboxtype & UI_CNR_TOP_LEFT) {
+			glVertex2f(minx, maxy - rad);
+			for (a = 0; a < 4; a++) {
+				glVertex2f(minx + vec[a][1], maxy - rad + vec[a][0]);
+			}
+			glVertex2f(minx + rad, maxy);
+		}
+		else {
+			glVertex2f(minx, maxy);
+		}
+
+		/* corner right-top */
+		if (roundboxtype & UI_CNR_TOP_RIGHT) {
+			glVertex2f(maxx - rad, maxy);
+			for (a = 0; a < 4; a++) {
+				glVertex2f(maxx - rad + vec[a][0] , maxy - vec[a][1]);
+			}
+			glVertex2f(maxx, maxy - rad);
+		}
+		else {
+			glVertex2f(maxx, maxy);
+		}
+
+		if (use_highlight && !use_shadow) {
+			if (highlight_fade) {
+				glColor3ubv(highlight_fade);
+			}
+		}
+
+		/* corner right-bottom */
+		glVertex2f(maxx, miny);
+
+		/* corner left-bottom */
+		glVertex2f(minx, miny);
+
+		if (use_highlight && !use_shadow) {
+			if (highlight_fade) {
+				glColor3ubv(highlight);
+			}
+		}
+		glVertex2f(minx, roundboxtype & UI_CNR_TOP_LEFT ? maxy - rad : maxy);
+	}
+	glEnd();
+}
+
+void ui_draw_but_TAB_unlink(const rcti *rect, const float rad, char *inner)
+{
+	rcti rct = *rect;
+
+	float minx = rct.xmin = rect->xmax - 12 * UI_DPI_FAC;
+	float maxx = rct.xmax = rct.xmin + 6 * UI_DPI_FAC;
+	float miny = rct.ymin = rect->ymax - 14 * UI_DPI_FAC;
+	float maxy = rct.ymax = rct.ymin + 6 * UI_DPI_FAC;
+
+	if (inner) {
+		UI_draw_roundbox_corner_set(UI_CNR_ALL);
+		UI_draw_roundbox_gl_mode(GL_POLYGON, minx - 3 * UI_DPI_FAC, miny - 3 * UI_DPI_FAC, maxx + 3 * UI_DPI_FAC,
+		           maxy + 3 * UI_DPI_FAC, rad + 1.5 * UI_DPI_FAC);
+		glColor3ubv((unsigned char *)inner);
+	}
+
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
+
+	glLineWidth(0.1 * U.widget_unit);
+
+	glBegin(GL_LINE_STRIP);
+
+	glVertex2f(minx, maxy);
+	glVertex2f(maxx, miny);
+
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+
+	glVertex2f(minx, miny);
+	glVertex2f(maxx, maxy);
+
+	glEnd();
+	glLineWidth(1.0);
+}
+
 void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti *rect)
 {
 #ifdef WITH_HEADLESS

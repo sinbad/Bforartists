@@ -869,6 +869,9 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tui.yaxis,   0, 220,   0, 255);
 	rgba_char_args_set(btheme->tui.zaxis,   0,   0, 220, 255);
 
+//    btheme->tui.tab_shadow_fac = 0.5f;
+//    btheme->tui.tab_shadow_width = 12;
+
 	btheme->tui.menu_shadow_fac = 0.5f;
 	btheme->tui.menu_shadow_width = 12;
 	
@@ -2768,6 +2771,35 @@ void init_userdef_do_versions(void)
 	 */
 	{
 		
+	}
+
+//    if(U.versionfile < 270 || (U.versionfile == 270 && U.subversionfile < 11)) {
+	{
+		bTheme *btheme;
+
+		/* interface_widgets.c */
+		struct uiWidgetColors wcol_tab = {
+		{60, 60, 60, 255},
+		{83, 83, 83, 255},
+		{114, 114, 114, 255},
+		{90, 90, 90, 255},
+
+		{0, 0, 0, 255},
+		{255, 255, 255, 255},
+
+		0,
+		0, 0
+	};
+
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			/* init tab theme */
+			btheme->tui.wcol_tab = wcol_tab;
+			/* rna definition limits fac to 0.01 */
+//			if (btheme->tui.tab_shadow_fac == 0.0f) {
+//				btheme->tui.tab_shadow_fac = 0.5f;
+//				btheme->tui.tab_shadow_width = 12;
+//			}
+		}
 	}
 
 	if (U.pixelsize == 0.0f)
